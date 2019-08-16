@@ -14,8 +14,20 @@ After this, whether from Ctrl-C, sigs, or regular closing of the program, the da
 
 ### API
 
-#### ndas(<String>)
-The function returned by `require('node-desktop-app-settings')` returns a function that is used to create a desired settings.
+#### NDAS(<String>, [options])
+`require('node-desktop-app-settings')` returns a function that is used to create a desired settings.
+
+##### options
+An options object can optionally be passed to the NDAS constructor. The possible options are:
+
+  * `saveOn`: `["exit", "SIGINT", "unhandledException"]`
+    * Setting this to an empty array will prevent any sort of saving on program exit.
+  * `appData`: `<String>`
+    * Manually override the default appData location.
+  * `userData`: `<String>`
+    * Manually override the default userData location.
+  * `settingsPath`: `<String>`
+    * Manually override the default settings path.
   
 ##### Example
 ```
@@ -28,7 +40,7 @@ let myConfig = require('node-desktop-app-settings')('MyProgram')
 ````
 
 #### config.settings
-This property is the object that is saved on program exit.
+This property is the object that is saved on a call to `save()` or program exit. If `options.saveOn` is set to an empty array, this will not automatically by saved.
 
 #### config.appData
 This property returns:

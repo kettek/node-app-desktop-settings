@@ -1,56 +1,54 @@
 const fs      = require('fs')
 const path    = require('path')
 
-module.exports = function(appName) {
-  let appData         = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : process.env.HOME + "/.local/share")
-  let userData        = path.join(appData, appName)
-  let settingsPath    = path.join(userData, 'settings.json')
-  let settings    = {}
+function NDAS(appName, options) {
+  options = Object.assign({
+    saveOn: [
+      'exit',
+      'SIGINT',
+      'uncaughtException',
+    ],
+  }, options)
 
-  // I would prefer async, but I don't think it really matters.
-  // Create our userData directory.
-  fs.mkdirSync(userData, { recursive: true, mode: 0o640 })
-  // Read our settings file.
+  this.appData         = options.appData || (process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : process.env.HOME + "/.local/share"))
+  this.userData        = options.userData || path.join(this.appData, appName)
+  this.settingsPath    = options.settingsPath || path.join(this.userData, 'settings.json')
   try {
-    settings = JSON.parse(fs.readFileSync(settingsPath, { encoding: 'utf8' }))
+    this.settings = JSON.parse(fs.readFileSync(this.settingsPath, { encoding: 'utf8' }))
   } catch (e) {
-    if (e.code === 'ENOENT') {
-      settings = {}
-    } else {
-      throw e
-    }
-  }
-
-  function save() {
-    fs.writeFileSync(settingsPath, JSON.stringify(settings))
-  }
-
-  function clear() {
-    settings = {}
+    this.settings = {}
   }
 
   // Add process hooks
   function exitFunc(options, exitCode) {
     if (options.cleanup) {
-      save()
+      this.save()
     }
     if (options.exit) {
       process.exit()
     }
   }
   
-  process.on('exit', exitFunc.bind(null, {cleanup: true}))
-  process.on('SIGINT', exitFunc.bind(null, {exit: true}))
-  process.on('SIGUSR1', exitFunc.bind(null, {exit: true}))
-  process.on('SIGUSR2', exitFunc.bind(null, {exit: true}))
-  process.on('uncaughtException', exitFunc.bind(null, {exit: true}))
-
-  return {
-    appData: appData,
-    userData: userData,
-    settingsPath: settingsPath,
-    settings: settings,
-    clear: clear,
-    save: save
+  if (options.saveOn['exit']) {
+    process.on('exit', exitFunc.bind(this, {cleanup: true}))
   }
+  if (options.saveOn['SIGINT']) {
+    process.on('SIGINT', exitFunc.bind(this, {exit: true}))
+  }
+  if (options.saveOn['uncaughtException']) {
+    process.on('uncaughtException', exitFunc.bind(this, {exit: true}))
+  }
+}
+
+NDAS.prototype.save = function() {
+  fs.mkdirSync(this.userData, { recursive: true, mode: 0o755 })
+  fs.writeFileSync(this.settingsPath, JSON.stringify(this.settings))
+}
+
+NDAS.prototype.clear = function() {
+  this.settings = {}
+}
+
+module.exports = function(appName, options) {
+  return new NDAS(appName, options)
 }
