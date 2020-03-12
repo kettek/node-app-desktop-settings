@@ -1,6 +1,6 @@
 {
   "name": "node-desktop-app-settings",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Module providing multi-platform application settings with automatic saving and creation.",
   "main": "index.js",
   "keywords": [
