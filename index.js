@@ -10,7 +10,7 @@ function NDAS(appName, options) {
     ],
   }, options)
 
-  this.appData         = options.appData || (process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : process.env.HOME + "/.local/share"))
+  this.appData         = options.appData || (process.env.APPDATA || (process.platform == 'darwin' ? path.join(process.env.HOME, 'Library/Preferences') : path.join(process.env.HOME, "/.local/share")))
   this.userData        = options.userData || path.join(this.appData, appName)
   this.settingsPath    = options.settingsPath || path.join(this.userData, 'settings.json')
   try {
